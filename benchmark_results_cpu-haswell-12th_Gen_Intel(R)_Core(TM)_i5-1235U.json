@@ -1,0 +1,29 @@
+{
+  "device": {
+    "name": "cpu-haswell-12th Gen Intel(R) Core(TM) i5-1235U",
+    "vendor": "GenuineIntel",
+    "driver_version": "6.0+debian",
+    "opencl_version": "3.0",
+    "compute_units": 12,
+    "clock_frequency_mhz": 4400,
+    "memory_mb": 13578,
+    "theoretical_tflops": 0.845,
+    "is_fp64_capable": true,
+    "is_fp16_capable": false,
+    "uses_ram": true
+  },
+  "compute_performance": {
+    "fp64_tflops": 0.008,
+    "fp32_tflops": 0.007,
+    "int64_tiops": 0.014,
+    "int32_tiops": 0.008,
+    "int16_tiops": 0.018,
+    "int8_tiops": 0.013
+  },
+  "memory_bandwidth_gb_s": {
+    "coalesced_read": 7.24,
+    "coalesced_write": 4.04,
+    "misaligned_read": 9.94,
+    "misaligned_write": 22.83
+  }
+}

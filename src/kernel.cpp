@@ -3,9 +3,9 @@ string opencl_c_container() { return R( // ########################## begin of O
 
 
 
-int dp4a(const char4 a, const char4 b, const int c) { // 4-wide byte dot product and accumulate
+inline int dp4a(const char4 a, const char4 b, const int c) { // 4-wide byte dot product and accumulate
 )+"#if cl_nv_compute_capability>=61"+R( // use hardware-supported dp4a on Nvidia Pascal or newer GPUs with inline PTX assembly
-	int d;)+"asm(\"dp4a.s32.s32\t%0,%1,%2,%3;\":\"=r\"(d):\"r\"(as_int(a)),\"r\"(as_int(b)),\"r\"(c));"+R(return d;
+	int d;)+"asm volatile(\"dp4a.s32.s32\t%0,%1,%2,%3;\":\"=r\"(d):\"r\"(as_int(a)),\"r\"(as_int(b)),\"r\"(c));"+R(return d;
 )+"#elif defined(__opencl_c_integer_dot_product_input_4x8bit)"+R( // use hardware-supported dp4a on some Intel GPUs
 	return c+dot(a, b); // dot_acc_sat(a, b, c); is slow
 )+"#elif __has_builtin(__builtin_amdgcn_sdot4)"+R( // use hardware-supported dp4a on older AMD GPUs
@@ -15,7 +15,9 @@ int dp4a(const char4 a, const char4 b, const int c) { // 4-wide byte dot product
 )+"#elif defined(cl_arm_integer_dot_product_accumulate_int8)"+R( // use hardware-supported dp4a on some ARM GPUs
 	return arm_dot_acc(a, b, c);
 )+"#else"+R( // fallback emulation (compilers will turn this into hardware-supported dp4a instruction if available)
-	return c+a.x*b.x+a.y*b.y+a.z*b.z+a.w*b.w;
+	const int ax=(int)a.x, ay=(int)a.y, az=(int)a.z, aw=(int)a.w;
+	const int bx=(int)b.x, by=(int)b.y, bz=(int)b.z, bw=(int)b.w;
+	return c+(ax*bx)+(ay*by)+(az*bz)+(aw*bw);
 )+"#endif"+R(
 }
 
