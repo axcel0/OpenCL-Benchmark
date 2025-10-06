@@ -1,26 +1,46 @@
-#!/usr/bin/env bash
-# command line argument(s): device ID(s); if empty, it will benchmark all available devices
+#!/bin/bash
+# ============================================================================
+# OpenCL-Benchmark v2.0 - Optimized Build Script
+# ============================================================================
 
-mkdir -p bin # create directory for executable
-rm -f bin/OpenCL-Benchmark # prevent execution of old version if compiling fails
+set -e  # Exit on error
 
-# Enhanced compiler flags for maximum performance:
-# -O3: Maximum optimization level
-# -march=native: Optimize for current CPU architecture
-# -mtune=native: Fine-tune for current CPU
-# -ffast-math: Enable aggressive floating-point optimizations
-# -funroll-loops: Unroll loops when beneficial
-# -flto: Link-time optimization
-# -DNDEBUG: Disable debug assertions
-CFLAGS="-std=c++17 -pthread -O3 -march=native -mtune=native -ffast-math -funroll-loops -flto -DNDEBUG -Wno-comment"
+echo "🔨 Building OpenCL-Benchmark v2.0..."
+echo ""
 
-case "$(uname -a)" in # automatically detect operating system
-	 Darwin*) g++ src/*.cpp -o bin/OpenCL-Benchmark $CFLAGS -I./src/OpenCL/include -framework OpenCL               ;; # macOS
-	*Android) g++ src/*.cpp -o bin/OpenCL-Benchmark $CFLAGS -I./src/OpenCL/include -L/system/vendor/lib64 -lOpenCL ;; # Android
-	*       ) g++ src/*.cpp -o bin/OpenCL-Benchmark $CFLAGS -I./src/OpenCL/include -L./src/OpenCL/lib -lOpenCL     ;; # Linux
-esac
+# Detect number of CPU cores for parallel LTO
+NCORES=$(nproc 2>/dev/null || echo 4)
 
-if [[ $? == 0 ]]; then 
-	echo "✓ Compilation successful with optimized flags!"
-	bin/OpenCL-Benchmark "$@"
-fi # run executable only if last compilation was successful
+# Compiler flags for maximum performance
+# -flto=auto uses GNU make's job server or auto-detects CPU cores
+CFLAGS="-std=c++17 -O3 -march=native -mtune=native -ffast-math -funroll-loops -flto=auto -DNDEBUG"
+LIBS="-lOpenCL -Lsrc/OpenCL/lib -Isrc/OpenCL/include"
+
+echo "🧵 Using $NCORES cores for parallel compilation..."
+
+# Create bin directory if it doesn't exist
+mkdir -p bin
+
+# Compile the optimized version
+echo "📦 Compiling with optimizations..."
+g++ $CFLAGS src/main_clean.cpp src/kernel.cpp -o bin/OpenCL-Benchmark $LIBS
+
+# Make executable
+chmod +x bin/OpenCL-Benchmark
+
+echo ""
+echo "✅ BUILD SUCCESSFUL!"
+echo ""
+echo "🚀 Executable: bin/OpenCL-Benchmark"
+echo ""
+echo "📋 Usage:"
+echo "  Interactive mode:  ./bin/OpenCL-Benchmark"
+echo "  CLI mode:          ./bin/OpenCL-Benchmark [device_id]"
+echo ""
+echo "🎨 Features:"
+echo "  • Interactive menu with arrow key navigation"
+echo "  • 3DMark-style performance scoring"
+echo "  • Real-time progress bars with visual feedback"
+echo "  • Colored output with performance grades"
+echo "  • JSON export for benchmark results"
+echo ""
